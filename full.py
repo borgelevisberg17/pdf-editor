@@ -1,58 +1,43 @@
 import os
-
 import json
 
-from constants.globals import config
-
-from configs.page_configs import carregar_config, salvar_config
-
+from configs.config_manager import carregar_config, salvar_config
 from modules.content_manager import editar_texto
-
 from modules.pdf_manager import mesclar_pdfs, infos_pdf, editar_pdf
-
-from functions.html_to_pdf import html_para_pdf
-
+from functions.html_to_pdf import html_para_pdf, exportar_para_html
 from functions.txt_to_pdf import txt_para_pdf
-
 from functions.imagem_to_pdf import imagem_para_pdf
 
+def clear_screen():
+    """Clears the terminal screen in a platform-independent way."""
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def gerenciar_configuracoes():
     try:
-        modo = input("📋 [e]xportar, [i]mportar ou [l]istar configurações? ")
+        modo = input("📋 [e]xportar, [i]mportar ou [l]istar configurações? ").lower()
         if modo == "e":
-            config = carregar_config()
+            config_to_export = carregar_config()
             nome_template = input("📋 Nome do template para exportar: ")
             with open(f"config_{nome_template}.json", "w", encoding="utf-8") as f:
-                json.dump(config, f, indent=4, ensure_ascii=False)
+                json.dump(config_to_export, f, indent=4, ensure_ascii=False)
             print(f"✅ Configurações exportadas como config_{nome_template}.json")
         elif modo == "i":
-            caminho = input("📋 Caminho do arquivo JSON: ")
+            caminho = input("📋 Caminho do arquivo JSON de configuração para importar: ")
             if os.path.exists(caminho):
                 with open(caminho, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                salvar_config(config)
+                    config_to_import = json.load(f)
+                salvar_config(config_to_import)
             else:
                 print(f"❌ Arquivo '{caminho}' não encontrado.")
-        elif modo == "l":
-            configs = {}
-            if os.path.exists(CONFIG_FILE):
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                    configs = json.load(f)
-                print("\n📋 Templates disponíveis:")
-                for perfil in configs.keys():
-                    print(f"- {perfil}")
-            else:
-                print("❌ Nenhum template encontrado.")
+        # 'l' (listar) is handled implicitly by carregar_config now
         else:
-            print("❌ Opção inválida. Escolha e, i ou l.")
+            print("❌ Opção inválida. Escolha 'e' para exportar ou 'i' para importar.")
     except Exception as e:
-        print(f"❌ Erro ao gerenciar configurações: {str(e)}.")
+        print(f"❌ Erro ao gerenciar configurações: {e}")
 
-
-# === MENU ===
 def menu():
-    os.system("clear")
+    """Displays the main menu."""
+    clear_screen()
     print("""
 🧰 BorgePDF Toolbox – Dev Tools no Terminal 💼
 
@@ -65,12 +50,13 @@ def menu():
 [7] Editar texto no terminal
 [8] Converter HTML para PDF
 [9] Editar PDF existente
-[10] Exportar/Importar configurações
+[10] Exportar TXT para HTML
+[11] Gerenciar configurações (Exportar/Importar)
 [0] Sair
 """)
 
-
 def main():
+    """Main application loop."""
     while True:
         menu()
         op = input("Digite sua escolha: ")
@@ -89,25 +75,25 @@ def main():
                 infos_pdf()
             case "7":
                 caminho = input("📝 Caminho do arquivo .txt para editar: ")
-                if not os.path.exists(caminho) or not caminho.endswith(".txt"):
-                    print(
-                        f"❌ Arquivo '{caminho}' inválido ou não encontrado. Use um arquivo .txt."
-                    )
+                if os.path.exists(caminho) and caminho.endswith(".txt"):
+                    editar_texto(caminho, is_file_path=True)
                 else:
-                    editar_texto(caminho)
+                    print(f"❌ Arquivo '{caminho}' inválido ou não encontrado.")
             case "8":
                 html_para_pdf()
             case "9":
                 editar_pdf()
             case "10":
+                exportar_para_html()
+            case "11":
                 gerenciar_configuracoes()
             case "0":
                 print("🙏 Até logo, dev! Fica com Deus.")
                 break
             case _:
-                print("❌ Opção inválida. Escolha entre 0 e 10.")
-        input("\n🔁 Pressione Enter para continuar...")
+                print("❌ Opção inválida. Escolha entre 0 e 11.")
 
+        input("\n🔁 Pressione Enter para continuar...")
 
 if __name__ == "__main__":
     main()

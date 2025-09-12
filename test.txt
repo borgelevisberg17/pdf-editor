@@ -1,0 +1,3 @@
+# Test Document
+
+This is a test paragraph for the BorgePDF Toolbox. I am running a smoke test to ensure the refactored application works correctly.

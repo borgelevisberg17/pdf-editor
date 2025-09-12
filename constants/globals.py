@@ -1,17 +1,12 @@
 from reportlab.lib import colors
 
-# Variáveis globais
-story = []
-config = {}
-custom_styles = {}
-tabela_estilos = {}
-incluir_sumario = 'n'
-toc = []
+# This file is being refactored. Mutable global variables are being removed.
+# The style constants below will be moved to a more appropriate location.
 
 # Temas globais
 temas = {
     "moderno": {"fonte": "Helvetica", "cor_texto": colors.black, "cor_titulo": colors.HexColor("#000080")},
-    "classico": {"fonte": "Times", "cor_texto": colors.black, "cor_titulo": colors.HexColor("#320000")},
+    "classico": {"fonte": "Times-Roman", "cor_texto": colors.black, "cor_titulo": colors.HexColor("#320000")},
     "minimalista": {"fonte": "Courier", "cor_texto": colors.HexColor("#333333"), "cor_titulo": colors.HexColor("#333333")}
 }
 
