@@ -1,0 +1,9 @@
+reportlab
+markdown
+prompt_toolkit
+pypdf
+pillow
+requests
+weasyprint
+rich
+sympy
