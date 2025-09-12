@@ -1,0 +1,32 @@
+# Relatório Anual 2025
+Bem-vindo ao *Relatório Anual* da **Borge Dev**[^1]. Este documento apresenta os destaques do ano, com foco em tecnologia e inovação.
+
+## Visão Geral
+O ano de 2025 foi marcado por avanços significativos em projetos de código aberto. Nosso objetivo é criar soluções *acessíveis* e **eficientes**, destacando a palavra <font color="#FF0000">inovação</font> em todas as nossas iniciativas.
+
+### Metas Alcançadas
+- Lançamento de 3 projetos full stack.
+  - Plataforma de ensino online.
+  - API Onjo Express com Node.js e PostgreSQL.
+- Colaboração com 5 desenvolvedores na comunidade.
+
+### Estatísticas
+| Projeto         | Usuários | Tecnologias       |
+|-----------------|----------|-------------------|
+| Onjo Express    | 1,200    | Node.js, Express  |
+| Plataforma EAD  | 800      | HTML, CSS, JS     |
+| BorgePDF Toolbox| 500      | Python, ReportLab |
+
+## Imagens
+Abaixo, uma captura do nosso dashboard principal:
+
+![Dashboard](caminho/dashboard.png)
+
+## Planos para 2026
+1. Expandir a integração com IA generativa.
+2. Lançar uma interface gráfica para o BorgePDF Toolbox.
+3. Melhorar a documentação com mais exemplos e tutoriais.
+
+**Nota**: A palavra <font color="blue">futuro</font> é o nosso guia para 2026.
+
+[^1]: Borge Dev é uma equipe apaixonada por tecnologia, focada em soluções open-source.
