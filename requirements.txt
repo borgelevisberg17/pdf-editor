@@ -8,3 +8,8 @@ weasyprint
 rich
 sympy
 Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-WTF
+Flask-Admin
+stripe
