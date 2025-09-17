@@ -17,10 +17,20 @@ import markdown
 import tempfile
 
 from .markdown_parser import MarkdownParser
-from .Summary import TOCEntry
+from reportlab.platypus.tableofcontents import TableOfContents
 from .page_manager import adicionar_pagina
 from .validations import validar_fonte
 from .latex import replace_latex_with_placeholders, render_latex_to_image
+
+class MyDocTemplate(SimpleDocTemplate):
+    def __init__(self, filename, **kw):
+        super().__init__(filename, **kw)
+        self.toc = TableOfContents()
+
+    def afterFlowable(self, flowable):
+        "Registers TOC entries."
+        if hasattr(flowable, 'bookmark') and flowable.bookmark:
+            self.notify('TOCEntry', (flowable.level, flowable.getPlainText(), self.page, flowable.bookmark))
 
 class PdfGenerator:
     """
@@ -75,19 +85,8 @@ class PdfGenerator:
         story.append(Paragraph(self.config.get("capa_data", ""), ParagraphStyle(name="CapaData", fontSize=12, fontName=validar_fonte(self.config.get("fonte", "Helvetica")), alignment=1)))
         story.append(PageBreak())
 
-    def _add_table_of_contents(self, story, toc_entries):
-        if not self.config.get("incluir_sumario", False):
-            return
-
-        story.append(Paragraph("Sumário", self.styles["Heading1"]))
-        story.append(Spacer(1, 12))
-        for text, level, page in toc_entries:
-            story.append(TOCEntry(text, level, page))
-        story.append(PageBreak())
-
     def _parse_content(self, text_blocks, process_latex=False):
         story = []
-        toc_entries = []
         available_height = self.pagesize[1] - (self.config.get("margem_sup", 50) * mm + self.config.get("margem_inf", 50) * mm)
 
         for text in text_blocks:
@@ -105,9 +104,8 @@ class PdfGenerator:
             parser.feed(html)
 
             story.extend(parser.story)
-            toc_entries.extend(parser.toc)
 
-        return story, toc_entries
+        return story
 
     def _on_page_draw(self, canvas, doc):
         adicionar_pagina(canvas, doc, self.config, doc.page)
@@ -116,76 +114,8 @@ class PdfGenerator:
     def build(self, text_blocks, output_filename, process_latex=False):
         """
         Builds the final PDF. Handles the two-pass generation for TOC if needed.
-
-        Args:
-            text_blocks (list): A list of strings, where each string is a block of
-                                markdown content (e.g., from a file).
-            output_filename (str): The path to save the final PDF.
-            process_latex (bool): Whether to process LaTeX formulas.
         """
-        # --- First Pass: Generate content and initial TOC entries ---
-        main_content_story, toc_entries = self._parse_content(text_blocks, process_latex)
-
-        # --- TOC Handling ---
-        if self.config.get("incluir_sumario", False):
-            # --- Second Pass: Build a temporary PDF to get page numbers ---
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                temp_pdf_path = tmp.name
-
-            try:
-                # Build a temporary document with cover and content, but no TOC
-                story_for_pass_two = []
-                self._add_cover_page(story_for_pass_two)
-                story_for_pass_two.extend(main_content_story)
-
-                # We need a canvas function that just adds bookmarks for the TOC entries
-                def on_page_pass_two(canvas, doc):
-                    for i, (text, level, page_placeholder) in enumerate(toc_entries):
-                        # This is a bit of a hack: we use the placeholder to store the bookmark key
-                        if f"toc_entry_{i}" == page_placeholder:
-                            canvas.bookmarkPage(f"toc_entry_{i}")
-
-                doc = SimpleDocTemplate(temp_pdf_path, pagesize=self.pagesize, leftMargin=self.config.get("margem_esq", 40) * mm, rightMargin=self.config.get("margem_dir", 40) * mm, topMargin=self.config.get("margem_sup", 50) * mm, bottomMargin=self.config.get("margem_inf", 50) * mm)
-                doc.build(story_for_pass_two, onFirstPage=on_page_pass_two, onLaterPages=on_page_pass_two)
-
-                # --- Read the temporary PDF to get actual page numbers ---
-                reader = PdfReader(temp_pdf_path)
-                updated_toc = []
-                outlines = reader.outline
-
-                # This is a simplified way to map outlines to TOC. A real implementation
-                # would need a more robust way to match outline titles to TOC entries.
-                # For now, we assume the order is the same.
-                def flatten_outlines(outlines, page_map):
-                    flat = []
-                    for item in outlines:
-                        if isinstance(item, list):
-                            flat.extend(flatten_outlines(item, page_map))
-                        else:
-                            page_num = page_map.get(item.page.indirect_object)
-                            if page_num is not None:
-                                flat.append((item.title, page_num))
-                    return flat
-
-                page_map = {p.indirect_object: i + 1 for i, p in enumerate(reader.pages)}
-                flat_outlines = flatten_outlines(outlines, page_map)
-
-                # Update toc_entries with correct page numbers
-                # This is still tricky. Let's stick to the original's simpler logic for now,
-                # which seems to get page numbers during the initial parse.
-                # The two-pass build is complex to get right.
-
-            finally:
-                if os.path.exists(temp_pdf_path):
-                    os.remove(temp_pdf_path)
-
-        # --- Final Pass: Build the definitive PDF ---
-        final_story = []
-        self._add_cover_page(final_story)
-        self._add_table_of_contents(final_story, toc_entries)
-        final_story.extend(main_content_story)
-
-        doc = SimpleDocTemplate(
+        doc = MyDocTemplate(
             output_filename,
             pagesize=self.pagesize,
             leftMargin=self.config.get("margem_esq", 40) * mm,
@@ -197,4 +127,15 @@ class PdfGenerator:
             creator="BorgePDF (Refactored)"
         )
 
-        doc.build(final_story, onFirstPage=self._on_page_draw, onLaterPages=self._on_page_draw)
+        story = []
+        self._add_cover_page(story)
+
+        if self.config.get("incluir_sumario", False):
+            story.append(Paragraph("Sumário", self.styles["Heading1"]))
+            story.append(doc.toc)
+            story.append(PageBreak())
+
+        main_content_story = self._parse_content(text_blocks, process_latex)
+        story.extend(main_content_story)
+
+        doc.multiBuild(story, onFirstPage=self._on_page_draw, onLaterPages=self._on_page_draw)

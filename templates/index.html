@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BorgePDF Toolbox</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        .container { background-color: #fff; padding: 2em; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; }
+        .tab button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active { background-color: #ccc; }
+        .tabcontent { display: none; padding: 20px 12px; border: 1px solid #ccc; border-top: none; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        input[type=text], input[type=file] { width: 100%; padding: 12px 20px; margin: 8px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        input[type=submit] { width: 100%; background-color: #4CAF50; color: white; padding: 14px 20px; margin: 8px 0; border: none; border-radius: 4px; cursor: pointer; }
+        input[type=submit]:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BorgePDF Toolbox</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'txt2pdf')" id="defaultOpen">TXT to PDF</button>
+            <button class="tablinks" onclick="openTab(event, 'img2pdf')">Image to PDF</button>
+            <button class="tablinks" onclick="openTab(event, 'html2pdf')">HTML to PDF</button>
+            <button class="tablinks" onclick="openTab(event, 'merge')">Merge PDFs</button>
+        </div>
+
+        <div id="txt2pdf" class="tabcontent">
+            <h3>Convert TXT to PDF</h3>
+            <form action="/txt-to-pdf" method="post" enctype="multipart/form-data">
+                <label for="txt_files">Select .txt files:</label>
+                <input type="file" name="txt_files" multiple required>
+                <label for="output_name">Output PDF name:</label>
+                <input type="text" name="output_name" placeholder="output.pdf">
+                <input type="submit" value="Convert">
+            </form>
+        </div>
+
+        <div id="img2pdf" class="tabcontent">
+            <h3>Convert Images to PDF</h3>
+            <form action="/image-to-pdf" method="post" enctype="multipart/form-data">
+                <label for="image_files">Select image files:</label>
+                <input type="file" name="image_files" multiple required accept="image/*">
+                <label for="output_name">Output PDF name:</label>
+                <input type="text" name="output_name" placeholder="output.pdf">
+                <input type="submit" value="Convert">
+            </form>
+        </div>
+
+        <div id="html2pdf" class="tabcontent">
+            <h3>Convert HTML to PDF</h3>
+            <form action="/html-to-pdf" method="post" enctype="multipart/form-data">
+                <label for="html_file">Select .html file:</label>
+                <input type="file" name="html_file" required accept=".html">
+                <label for="output_name">Output PDF name:</label>
+                <input type="text" name="output_name" placeholder="output.pdf">
+                <input type="submit" value="Convert">
+            </form>
+        </div>
+
+        <div id="merge" class="tabcontent">
+            <h3>Merge PDFs</h3>
+            <form action="/merge-pdfs" method="post" enctype="multipart/form-data">
+                <label for="pdf_files">Select PDF files to merge:</label>
+                <input type="file" name="pdf_files" multiple required accept=".pdf">
+                <label for="output_name">Output PDF name:</label>
+                <input type="text" name="output_name" placeholder="output.pdf">
+                <input type="submit" value="Merge">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        document.getElementById("defaultOpen").click();
+    </script>
+
+</body>
+</html>
