@@ -17,7 +17,7 @@ class MarkdownParser(HTMLParser):
     def __init__(self, doc_height, styles, config, latex_images=None):
         super().__init__()
         self.story = []
-        self.toc = []
+        self.headings = []
         self.styles = styles
         self.config = config
         self.latex_images = latex_images or {}
@@ -95,9 +95,14 @@ class MarkdownParser(HTMLParser):
 
             # Add to table of contents if it's a heading
             if self.config.get("incluir_sumario") and "Heading" in self.current_style_name:
-                level = 1 if self.current_style_name == "Heading1" else 2
-                # The page number is a placeholder here. The generator must update it.
-                self.toc.append((data, level, self.page_counter))
+                level = 0 if self.current_style_name == "Heading1" else 1
+                p = Paragraph(data, style)
+                p.bookmark = f"h{level}_{data}"
+                p.level = level
+                self.story.append(p)
+            else:
+                p = Paragraph(data, style)
+                self.story.append(p)
 
     def _add_image(self, src, is_buffer=False):
         try:

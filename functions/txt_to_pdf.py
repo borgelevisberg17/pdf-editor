@@ -6,6 +6,28 @@ from modules.page_manager import reordenar_arquivos
 from modules.content_manager import formatar_palavras
 from modules.pdf_generator import PdfGenerator
 
+def convert_text_to_pdf(text_blocks, output_path, config, process_latex=False):
+    """
+    Converts a list of text blocks to a PDF file.
+
+    Args:
+        text_blocks (list): A list of strings, where each string is a block of
+                            markdown content.
+        output_path (str): The path to save the output PDF file.
+        config (dict): A dictionary with the configuration for the PDF generation.
+        process_latex (bool): Whether to process LaTeX formulas.
+
+    Returns:
+        bool: True if the conversion was successful, False otherwise.
+    """
+    try:
+        generator = PdfGenerator(config)
+        generator.build(text_blocks, output_path, process_latex)
+        return True
+    except Exception as e:
+        print(f"Error converting text to PDF: {e}")
+        return False
+
 def txt_para_pdf(multiplos=False, process_latex=False):
     """
     Handles the user interaction for converting TXT files to PDF, then uses
@@ -61,11 +83,8 @@ def txt_para_pdf(multiplos=False, process_latex=False):
         config = obter_configuracao_usuario(config, has_tables)
 
         # 4. Generate PDF
-        print("\n🚀 Gerando PDF... Por favor, aguarde.")
-        generator = PdfGenerator(config)
-        generator.build(text_blocks, saida_pdf, process_latex)
-
-        print(f"✅ PDF final salvo como: {saida_pdf}")
+        if convert_text_to_pdf(text_blocks, saida_pdf, config, process_latex):
+            print(f"✅ PDF final salvo como: {saida_pdf}")
 
         # 5. Post-generation actions
         if input("📤 Enviar para Telegram? (s/n): ").lower() == "s":
