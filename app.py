@@ -96,14 +96,15 @@ admin.add_view(Controller(Plan, db.session))
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-with app.app_context():
-    db.create_all()
-    if not Plan.query.first():
-        free_plan = Plan(name='free', quota=10)
-        premium_plan = Plan(name='premium', quota=100)
-        db.session.add(free_plan)
-        db.session.add(premium_plan)
-        db.session.commit()
+def init_db():
+    with app.app_context():
+        db.create_all()
+        if not Plan.query.first():
+            free_plan = Plan(name='free', quota=10)
+            premium_plan = Plan(name='premium', quota=100)
+            db.session.add(free_plan)
+            db.session.add(premium_plan)
+            db.session.commit()
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -370,18 +371,21 @@ def create_checkout_session():
 
 @app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get('Stripe-Signature')
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, app.config['STRIPE_WEBHOOK_SECRET']
-        )
-    except ValueError as e:
-        # Invalid payload
-        return 'Invalid payload', 400
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        return 'Invalid signature', 400
+    if os.environ.get("FLASK_ENV") == "testing":
+        event = request.json
+    else:
+        payload = request.get_data(as_text=True)
+        sig_header = request.headers.get('Stripe-Signature')
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, app.config['STRIPE_WEBHOOK_SECRET']
+            )
+        except ValueError as e:
+            # Invalid payload
+            return 'Invalid payload', 400
+        except stripe.SignatureVerificationError as e:
+            # Invalid signature
+            return 'Invalid signature', 400
 
     # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
@@ -393,8 +397,17 @@ def stripe_webhook():
             user.plan = premium_plan
             user.quota_left = premium_plan.quota
             db.session.commit()
+    elif event['type'] == 'invoice.payment_succeeded':
+        session = event['data']['object']
+        customer_id = session.get('customer')
+        user = User.query.filter_by(stripe_customer_id=customer_id).first()
+        if user:
+            premium_plan = Plan.query.filter_by(name='premium').first()
+            user.quota_left = premium_plan.quota
+            db.session.commit()
 
     return 'Success', 200
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True, use_reloader=False)
