@@ -68,6 +68,9 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+db.sqlite
+uploads/
+generated/
 
 # Scrapy stuff:
 .scrapy
@@ -175,4 +178,3 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 livros/
-tests/

@@ -1,91 +1,60 @@
-# BorgePDF Toolbox
+# BorgePDF
 
-**BorgePDF Toolbox** é uma ferramenta em Python para manipulação de arquivos, com foco na conversão de arquivos TXT (com formatação Markdown e LaTeX), imagens e HTML para PDF, além de mesclagem e edição de PDFs no terminal.
+O **BorgePDF** é uma aplicação web para organizar, converter e manipular arquivos PDF com uma experiência simples, visual e rápida. A nova interface transforma os fluxos que antes estavam espalhados entre CLI e formulários básicos em um workspace único, responsivo e orientado a tarefas.
 
-Esta versão do projeto foi extensivamente refatorada para melhorar a arquitetura do software, eliminando código duplicado e variáveis globais. A lógica de negócio foi separada da interface de usuário, resultando em um código mais limpo, manutenível e testável.
+## O que já está disponível
 
-## Funcionalidades
-- **Conversão de TXT para PDF**: Transforma arquivos TXT com formatação Markdown em PDFs, com suporte a títulos, listas, tabelas, notas de rodapé e imagens.
-- **Suporte a LaTeX**: Renderiza fórmulas LaTeX (`$e=mc^2$`) em imagens e as insere no PDF.
-- **Conversão de Múltiplos Arquivos**: Combina vários arquivos TXT em um único PDF.
-- **Conversão de Imagens para PDF**: Converte uma ou várias imagens (.png, .jpg, .jpeg) em PDF.
-- **Conversão de HTML para PDF**: Converte arquivos HTML em PDFs usando WeasyPrint.
-- **Exportação para HTML**: Converte arquivos TXT (Markdown) para HTML estilizado.
-- **Mesclagem de PDFs**: Combina múltiplos PDFs em um único arquivo.
-- **Edição de PDF (baseada em texto)**: Extrai o texto de um PDF, permite editar, remover ou reordenar as páginas, e gera um *novo* PDF.
-- **Informações de PDF**: Exibe detalhes como número de páginas e dimensões.
-- **Personalização Avançada**:
-  - Margens, fontes, tamanho de fonte, alinhamento, espaçamento entre linhas.
-  - Temas (moderno, clássico, minimalista).
-  - Estilos de tabelas e paginação configurável.
-  - Capa personalizável com título, autor e data.
-  - Sumário clicável.
-- **Gerenciamento de Configurações**: Salva e carrega perfis de configuração para reutilização.
-- **Envio via Telegram**: Envia PDFs gerados diretamente para um chat do Telegram.
+A página inicial apresenta as ferramentas em cards e abre um fluxo de upload com drag-and-drop, validação de formato, lista de arquivos selecionados, campos contextuais e download automático do resultado. Os fluxos implementados são:
 
-## Pré-requisitos
-- Python 3.10+
-- **WeasyPrint**: Para a conversão de HTML para PDF, pode ser necessário instalar dependências adicionais (ex: GTK no Windows, `libpango` no Linux/Mac). Veja a [documentação do WeasyPrint](https://weasyprint.readthedocs.io/).
-- **LaTeX**: Para renderizar fórmulas LaTeX, é preciso ter uma distribuição LaTeX instalada (ex: MiKTeX, TeX Live, MacTeX).
-- **Telegram (Opcional)**: Para enviar arquivos, crie um arquivo `configs/config.py` com seu `CHAT_ID` e `TELEGRAM_TOKEN`.
+| Ferramenta | Endpoint | Resultado |
+| --- | --- | --- |
+| Mesclar PDF | `POST /merge-pdfs` | Combina dois ou mais PDFs na ordem selecionada. |
+| Comprimir PDF | `POST /compress-pdf` | Reescreve e compacta streams de conteúdo sem alterar as páginas. |
+| Dividir PDF | `POST /split-pdf` | Extrai páginas com especificações como `1,3-5`, `odd` ou `even`. |
+| Girar PDF | `POST /rotate-pdf` | Gira todas ou páginas específicas em 90, 180 ou 270 graus. |
+| Remover páginas | `POST /delete-pages` | Remove páginas selecionadas sem permitir um PDF vazio. |
+| Organizar páginas | `POST /reorder-pages` | Reordena todas as páginas exatamente uma vez. |
+| Imagem para PDF | `POST /image-to-pdf` | Converte imagens PNG, JPG, JPEG ou WEBP em PDF. |
+| Texto para PDF | `POST /txt-to-pdf` | Converte TXT e Markdown para PDF com o motor existente. |
+| HTML para PDF | `POST /html-to-pdf` | Renderiza arquivos HTML usando WeasyPrint. |
+| Informações do PDF | `POST /pdf-info` | Exibe quantidade de páginas e tamanho do arquivo. |
 
-## Instalação
-1. Clone o repositório:
-   ```bash
-   git clone <url-do-repositorio>
-   cd <pasta-do-repositorio>
-   ```
-2. Instale as dependências usando o arquivo `requirements.txt`:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. (Opcional) Configure as credenciais do Telegram em `configs/config.py`.
+A autenticação, os planos e o painel administrativo existentes foram preservados, mas as páginas de login e cadastro receberam a mesma linguagem visual da home. O plano gratuito continua disponível para uso básico e a conversão com LaTeX permanece protegida pelo plano premium.
 
-## Uso
-Execute o script principal `full.py` a partir da raiz do projeto:
+## Instalação e execução
+
+O projeto usa Python 3.10+ e Flask. Para executar localmente:
+
 ```bash
-python full.py
-```
-Siga as opções do menu interativo:
-```
-🧰 BorgePDF Toolbox – Dev Tools no Terminal 💼
-
-[1] Converter TXT para PDF com formatação Markdown
-[2] Converter TXT para PDF com Markdown e fórmulas LaTeX
-[3] Converter Múltiplos TXTs para um PDF
-[4] Converter Imagens para PDF
-[5] Mesclar vários PDFs
-[6] Ver informações de um PDF
-[7] Editar texto no terminal
-[8] Converter HTML para PDF
-[9] Editar PDF existente
-[10] Exportar TXT para HTML
-[11] Gerenciar configurações (Exportar/Importar)
-[0] Sair
+git clone https://github.com/borgelevisberg17/pdf-editor.git
+cd pdf-editor
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
 ```
 
-## Estrutura do Projeto
-A arquitetura do projeto foi refatorada para uma melhor separação de responsabilidades:
-- `full.py`: O ponto de entrada principal da aplicação, responsável pelo menu e pela orquestração das chamadas.
-- `requirements.txt`: Lista de todas as dependências do projeto.
-- `configs/`: Módulos para gerenciamento de configurações da aplicação (perfis, prompts, etc.).
-- `constants/`: Arquivos com constantes da aplicação, como estilos.
-- `functions/`: Módulos que contêm a lógica de interação com o usuário para cada funcionalidade do menu (ex: `txt_to_pdf.py`).
-- `modules/`: Módulos de baixo nível que encapsulam a lógica de negócio principal.
-  - `pdf_generator.py`: O novo motor de geração de PDF, reutilizável e independente da UI.
-  - `content_manager.py`: Funções para manipulação de conteúdo de texto.
-  - `pdf_manager.py`: Funções para manipulação de arquivos PDF existentes (mesclar, editar, etc.).
-- `fonts/`: Diretório para fontes personalizadas.
+Depois, acesse `http://127.0.0.1:5000`. O limite padrão de upload é de 50 MB por request e pode ser ajustado em `app.py` por meio de `MAX_CONTENT_LENGTH`.
 
-## Limitações
-- **Edição de Páginas**: A edição de páginas do PDF usa o texto extraído do arquivo original. Isso significa que formatações complexas, fontes específicas ou elementos vetoriais do PDF original serão perdidos. A função gera um *novo* PDF a partir do conteúdo de texto.
-- **WeasyPrint**: A conversão de HTML para PDF pode não renderizar CSS externo ou JavaScript. Para melhores resultados, use HTML autocontido.
+## Arquitetura
 
-## Contribuições
-Sinta-se à vontade para abrir issues ou pull requests. Sugestões de melhorias:
-- Suporte a diagramas Markdown (ex.: Mermaid).
-- Exportação para outros formatos como DOCX ou ODT.
-- Uma interface gráfica (GUI) com `tkinter` ou `PyQt`.
+A camada Flask em `app.py` concentra autenticação, rotas, limites e entrega de arquivos. As operações estruturais de PDF foram isoladas em `modules/pdf_operations.py`, com validação explícita de páginas e erros amigáveis. Os conversores legados em `functions/` continuam sendo utilizados para TXT, imagens e HTML, enquanto `modules/pdf_generator.py` permanece responsável pela geração formatada de documentos de texto.
+
+Uploads são gravados com nomes aleatórios em `uploads/` e removidos após o request. Resultados são criados em `generated/` e removidos depois do download. Esses diretórios, assim como o banco SQLite local, estão protegidos no `.gitignore`.
+
+## Validação
+
+O repositório inclui um smoke test local em `tests/smoke_app.py`, ignorado por padrão pelo projeto original, que verifica importação do app, renderização da home, parsing de páginas, mesclagem, divisão, rotação, remoção, reordenação, compressão e conversão TXT para PDF.
+
+```bash
+python3 -m py_compile app.py modules/pdf_operations.py configs/config_manager.py
+python3 tests/smoke_app.py
+```
+
+## Próximas evoluções sugeridas
+
+As próximas etapas naturais são adicionar compressão por perfil de qualidade com ferramentas nativas do sistema, preview de miniaturas no navegador, edição visual de texto sobre a página, assinatura digital, OCR e uma fila assíncrona para arquivos maiores. A estrutura atual deixa esses recursos isolados dos fluxos já entregues.
 
 ## Licença
-MIT License. Desenvolvido por Borge Dev, 2025.
+
+MIT License. Desenvolvido por Borge Dev.

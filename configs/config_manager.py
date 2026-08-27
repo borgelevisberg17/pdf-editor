@@ -1,42 +1,24 @@
-import os
 import json
+import os
 from datetime import datetime
 from .config import CONFIG_FILE
 from modules.validations import validar_fonte # Import needed for the moved function
 
-def carregar_config():
-    """
-    Carrega as configurações de um arquivo JSON.
-    Permite ao usuário escolher um perfil de configuração.
-    Retorna um dicionário de configuração.
-    """
+def carregar_config(profile_name="default"):
+    """Carrega um perfil de forma determinística, sem prompts interativos."""
     try:
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                configs = json.load(f)
-
-            if not isinstance(configs, dict) or not configs:
-                print(f"⚠️ Arquivo de configuração '{CONFIG_FILE}' vazio ou malformado. Usando padrões.")
-                return get_default_config()
-
-            print("\n📋 Perfis de configuração disponíveis:")
-            profiles = list(configs.keys())
-            for i, profile_name in enumerate(profiles, 1):
-                print(f"[{i}] {profile_name}")
-
-            escolha = input(f"Escolha um perfil [1-{len(profiles)}] (ou Enter para 'default'): ")
-            if escolha.isdigit() and 1 <= int(escolha) <= len(profiles):
-                profile_to_load = profiles[int(escolha) - 1]
-                print(f"✅ Carregando perfil '{profile_to_load}'.")
-                return configs[profile_to_load]
-
-            print("✅ Carregando perfil 'default'.")
-            return configs.get("default", get_default_config())
-
-        return get_default_config()
-    except (json.JSONDecodeError, IOError) as e:
-        print(f"❌ Erro ao carregar '{CONFIG_FILE}': {e}. Usando configurações padrão.")
-        return get_default_config()
+            with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+                configs = json.load(file)
+            if isinstance(configs, dict):
+                config = configs.get(profile_name) or configs.get("default")
+                if isinstance(config, dict):
+                    merged = get_default_config()
+                    merged.update(config)
+                    return merged
+    except (json.JSONDecodeError, OSError):
+        pass
+    return get_default_config()
 
 def get_default_config():
     """Retorna um dicionário com as configurações padrão."""
@@ -61,7 +43,7 @@ def get_default_config():
         "incluir_marca_dagua": False,
     }
 
-def salvar_config(config_to_save):
+def salvar_config(config_to_save, profile_name="default"):
     """Salva um dicionário de configuração em um perfil nomeado pelo usuário."""
     try:
         configs = {}
@@ -74,7 +56,7 @@ def salvar_config(config_to_save):
             except (json.JSONDecodeError, IOError):
                 configs = {} # Overwrite if malformed or unreadable
 
-        nome_perfil = input("📋 Nome do perfil para salvar (ex: relatorio, Enter para 'default'): ").strip() or "default"
+        nome_perfil = profile_name or "default"
         configs[nome_perfil] = config_to_save
 
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:

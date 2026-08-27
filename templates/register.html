@@ -1,41 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ title }}</title>
-</head>
-<body>
-    <h1>{{ title }}</h1>
-    <form action="" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.username.label }}<br>
-            {{ form.username(size=32) }}<br>
-            {% for error in form.username.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(size=32) }}<br>
-            {% for error in form.email.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password2.label }}<br>
-            {{ form.password2(size=32) }}<br>
-            {% for error in form.password2.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
-</body>
-</html>
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Criar conta — BorgePDF</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet"><style>:root{--ink:#17211b;--muted:#66736c;--line:#e5ebe7;--green:#176b4e;--lime:#c8f263}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f7faf8;color:var(--ink);font-family:'DM Sans',sans-serif}.card{width:min(460px,calc(100% - 34px));padding:34px;border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:0 20px 60px rgba(22,54,38,.1)}.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.04em;text-decoration:none;color:var(--ink)}.mark{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:var(--lime)}h1{margin:34px 0 9px;font:800 31px Manrope,sans-serif;letter-spacing:-.06em}p{color:var(--muted);font-size:14px;line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:7px;margin-top:17px}.field label{font-weight:700;font-size:12px}.field input{padding:12px;border:1px solid var(--line);border-radius:11px;outline:0}.field input:focus{border-color:#8ebea0;box-shadow:0 0 0 3px #e2f1e7}.submit{width:100%;margin-top:23px;border:0;border-radius:999px;padding:13px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}.link{display:block;margin-top:19px;text-align:center;color:var(--green);font-size:13px;text-decoration:none}.error{margin-top:6px;color:#a53c31;font-size:12px}@media(max-width:520px){.grid{grid-template-columns:1fr}}</style></head>
+<body><main class="card"><a class="brand" href="{{ url_for('index') }}"><span class="mark">▣</span>BorgePDF</a><h1>Comece em um minuto.</h1><p>Crie sua conta gratuita e tenha um espaço simples para cuidar dos seus documentos.</p><form method="post">{{ form.hidden_tag() }}<div class="grid"><div class="field">{{ form.username.label }}{{ form.username(placeholder='Seu nome') }}{% for error in form.username.errors %}<span class="error">{{ error }}</span>{% endfor %}</div><div class="field">{{ form.email.label }}{{ form.email(placeholder='voce@exemplo.com') }}{% for error in form.email.errors %}<span class="error">{{ error }}</span>{% endfor %}</div></div><div class="field">{{ form.password.label }}{{ form.password(placeholder='Crie uma senha') }}{% for error in form.password.errors %}<span class="error">{{ error }}</span>{% endfor %}</div><div class="field">{{ form.password2.label }}{{ form.password2(placeholder='Repita a senha') }}{% for error in form.password2.errors %}<span class="error">{{ error }}</span>{% endfor %}</div>{{ form.submit(class='submit') }}</form><a class="link" href="{{ url_for('login') }}">Já tem uma conta? Entrar</a></main></body></html>
